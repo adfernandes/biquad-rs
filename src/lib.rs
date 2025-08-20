@@ -57,7 +57,7 @@ pub mod frequency;
 
 use core::ops::{Add, Mul, Sub};
 
-use num_traits::Zero;
+use num_traits::ConstZero;
 
 pub use crate::coefficients::*;
 pub use crate::frequency::*;
@@ -107,15 +107,15 @@ pub struct DirectForm2Transposed<C, T = C> {
 
 impl<C, T> DirectForm1<C, T>
 where
-    T: Zero,
+    T: ConstZero,
 {
     /// Creates a Direct Form 1 biquad from a set of filter coefficients
     pub fn new(coefficients: Coefficients<C>) -> Self {
         DirectForm1 {
-            y1: T::zero(),
-            y2: T::zero(),
-            x1: T::zero(),
-            x2: T::zero(),
+            y1: T::ZERO,
+            y2: T::ZERO,
+            x1: T::ZERO,
+            x2: T::ZERO,
             coeffs: coefficients,
         }
     }
@@ -123,7 +123,7 @@ where
 
 impl<C, T> Biquad<C, T> for DirectForm1<C, T>
 where
-    T: Copy + Add<T, Output = T> + Sub<T, Output = T> + Zero,
+    T: Copy + Add<T, Output = T> + Sub<T, Output = T> + ConstZero,
     C: Copy + Mul<T, Output = T>,
 {
     fn run(&mut self, input: T) -> T {
@@ -148,19 +148,19 @@ where
     }
 
     fn reset_state(&mut self) {
-        self.x1 = T::zero();
-        self.x2 = T::zero();
-        self.y1 = T::zero();
-        self.y2 = T::zero();
+        self.x1 = T::ZERO;
+        self.x2 = T::ZERO;
+        self.y1 = T::ZERO;
+        self.y2 = T::ZERO;
     }
 }
 
-impl<C, T> DirectForm2Transposed<C, T> where T: Zero {
+impl<C, T> DirectForm2Transposed<C, T> where T: ConstZero {
     /// Creates a Direct Form 2 Transposed biquad from a set of filter coefficients
     pub fn new(coefficients: Coefficients<C>) -> Self {
         DirectForm2Transposed {
-            s1: T::zero(),
-            s2: T::zero(),
+            s1: T::ZERO,
+            s2: T::ZERO,
             coeffs: coefficients,
         }
     }
@@ -168,7 +168,7 @@ impl<C, T> DirectForm2Transposed<C, T> where T: Zero {
 
 impl<C, T> Biquad<C, T> for DirectForm2Transposed<C, T>
 where
-    T: Copy + Add<T, Output = T> + Sub<T, Output = T> + Zero,
+    T: Copy + Add<T, Output = T> + Sub<T, Output = T> + ConstZero,
     C: Copy + Mul<T, Output = T>,
 {
     fn run(&mut self, input: T) -> T {
@@ -188,8 +188,8 @@ where
     }
 
     fn reset_state(&mut self) {
-        self.s1 = T::zero();
-        self.s2 = T::zero();
+        self.s1 = T::ZERO;
+        self.s2 = T::ZERO;
     }
 }
 
