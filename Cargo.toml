@@ -1,13 +1,13 @@
 [package]
 name = "biquad"
-version = "0.5.0"
+version = "0.6.0-patched"
 authors = ["Emil Fresk <emil.fresk@gmail.com>"]
 description = "A library for digital second order IIR filters, also known as biquads."
 categories = ["embedded", "no-std"]
 keywords = ["biquad", "filter", "iir"]
 readme = "README.md"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/korken89/biquad-rs"
+repository = "https://github.com/adfernandes/biquad-rs"
 edition = "2018"
 
 
