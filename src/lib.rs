@@ -11,29 +11,27 @@
 //! # Examples
 //!
 //! ```
-//! fn main() {
-//!     use biquad::*;
+//! use biquad::*;
 //!
-//!     // Cutoff and sampling frequencies
-//!     let f0 = 10.hz();
-//!     let fs = 1.khz();
+//! // Cutoff and sampling frequencies
+//! let f0 = 10.hz();
+//! let fs = 1.khz();
 //!
-//!     // Create coefficients for the biquads
-//!     let coeffs = Coefficients::<f32>::from_params(Type::LowPass, fs, f0, Q_BUTTERWORTH_F32).unwrap();
+//! // Create coefficients for the biquads
+//! let coeffs = Coefficients::<f32>::from_params(Type::LowPass, fs, f0, Q_BUTTERWORTH_F32).unwrap();
 //!
-//!     // Create two different biquads
-//!     let mut biquad1 = DirectForm1::<f32>::new(coeffs);
-//!     let mut biquad2 = DirectForm2Transposed::<f32>::new(coeffs);
+//! // Create two different biquads
+//! let mut biquad1 = DirectForm1::<f32>::new(coeffs);
+//! let mut biquad2 = DirectForm2Transposed::<f32>::new(coeffs);
 //!
-//!     let input_vec = vec![0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
-//!     let mut output_vec1 = Vec::new();
-//!     let mut output_vec2 = Vec::new();
+//! let input_vec = vec![0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+//! let mut output_vec1 = Vec::new();
+//! let mut output_vec2 = Vec::new();
 //!
-//!     // Run for all the inputs
-//!     for elem in input_vec {
-//!         output_vec1.push(biquad1.run(elem));
-//!         output_vec2.push(biquad2.run(elem));
-//!     }
+//! // Run for all the inputs
+//! for elem in input_vec {
+//!     output_vec1.push(biquad1.run(elem));
+//!     output_vec2.push(biquad2.run(elem));
 //! }
 //! ```
 //!
@@ -57,6 +55,7 @@ pub mod frequency;
 
 use core::ops::{Add, Mul, Sub};
 
+use num_traits::ConstZero;
 use num_traits::Zero;
 
 pub use crate::coefficients::*;
@@ -65,7 +64,6 @@ pub use crate::frequency::*;
 /// The required functions of a biquad implementation
 pub trait Biquad<C, T = C> {
     /// A single iteration of a biquad, applying the filtering on the input
-
     fn run(&mut self, input: T) -> T;
 
     /// Updating of coefficients
@@ -107,15 +105,15 @@ pub struct DirectForm2Transposed<C, T = C> {
 
 impl<C, T> DirectForm1<C, T>
 where
-    T: Zero,
+    T: ConstZero,
 {
     /// Creates a Direct Form 1 biquad from a set of filter coefficients
-    pub fn new(coefficients: Coefficients<C>) -> Self {
+    pub const fn new(coefficients: Coefficients<C>) -> Self {
         DirectForm1 {
-            y1: T::zero(),
-            y2: T::zero(),
-            x1: T::zero(),
-            x2: T::zero(),
+            y1: T::ZERO,
+            y2: T::ZERO,
+            x1: T::ZERO,
+            x2: T::ZERO,
             coeffs: coefficients,
         }
     }
@@ -155,12 +153,15 @@ where
     }
 }
 
-impl<C, T> DirectForm2Transposed<C, T> where T: Zero {
+impl<C, T> DirectForm2Transposed<C, T>
+where
+    T: ConstZero,
+{
     /// Creates a Direct Form 2 Transposed biquad from a set of filter coefficients
-    pub fn new(coefficients: Coefficients<C>) -> Self {
+    pub const fn new(coefficients: Coefficients<C>) -> Self {
         DirectForm2Transposed {
-            s1: T::zero(),
-            s2: T::zero(),
+            s1: T::ZERO,
+            s2: T::ZERO,
             coeffs: coefficients,
         }
     }
@@ -361,7 +362,7 @@ mod tests {
     #[test]
     fn test_biquad_zeros_f32() {
         use std::vec::Vec;
-        //use std::vec::Vec::*;
+
 
         let f0 = 10.hz();
         let fs = 1.khz();
@@ -385,7 +386,7 @@ mod tests {
     #[test]
     fn test_biquad_zeros_f64() {
         use std::vec::Vec;
-        //use std::vec::Vec::*;
+
 
         let f0 = 10.hz();
         let fs = 1.khz();
@@ -408,12 +409,12 @@ mod tests {
 
     #[test]
     fn test_biquad_lowpass_vs_scipy() {
-        use rand::prelude::*;
+        use rand::RngExt;
         use std::process::Command;
         use std::string::String;
         use std::vec::Vec;
         let normalize_f0 = 0.2;
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let coeffs: Coefficients<f32> = Coefficients::<f32>::from_normalized_params(
             Type::LowPass,
@@ -426,7 +427,7 @@ mod tests {
         let mut in_vec = Vec::<f32>::with_capacity(1000);
         let mut out_vec = Vec::<f32>::with_capacity(1000);
         for i in 0..in_vec.capacity() {
-            let x = ((i as f32) * 0.1).sin() + rng.gen::<f32>();
+            let x = ((i as f32) * 0.1).sin() + rng.random::<f32>();
             in_vec.push(x);
             out_vec.push(biquad.run(x));
         }
@@ -450,13 +451,7 @@ mod tests {
         let py_res = String::from_utf8(cmd_output.stdout).unwrap();
         let py_res_parsed_vec: Vec<_> = py_res
             .split(",")
-            .map_while(|x| {
-                let a = x.trim().parse::<f32>();
-                if let Ok(fl) = a {
-                    return Some(fl);
-                }
-                return None;
-            })
+            .map_while(|x| x.trim().parse::<f32>().ok())
             .collect();
         println!("{}", py_res_parsed_vec.len());
         let sum_err: f32 = py_res_parsed_vec
@@ -474,11 +469,11 @@ mod tests {
     #[test]
     fn test_biquad_notch_vs_scipy() {
         use core::f32::consts::PI;
-        use rand::prelude::*;
+        use rand::RngExt;
         use std::process::Command;
         use std::string::String;
         use std::vec::Vec;
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let f0 = 0.2;
         let w0 = PI * f0;
         let normalize_f01 = f0 / 2.;
@@ -494,7 +489,7 @@ mod tests {
         let mut in_vec = Vec::<f32>::with_capacity(vec_capacity);
         let mut out_vec = Vec::<f32>::with_capacity(vec_capacity);
         for i in 0..vec_capacity {
-            let x = ((i as f32) * w0).sin() + rng.gen::<f32>();
+            let x = ((i as f32) * w0).sin() + rng.random::<f32>();
             in_vec.push(x);
             out_vec.push(biquad.run(x));
         }
@@ -518,13 +513,7 @@ mod tests {
         let py_res = String::from_utf8(cmd_output.stdout).unwrap();
         let py_res_parsed_vec: Vec<_> = py_res
             .split(",")
-            .map_while(|x| {
-                let a = x.trim().parse::<f32>();
-                if let Ok(fl) = a {
-                    return Some(fl);
-                }
-                return None;
-            })
+            .map_while(|x| x.trim().parse::<f32>().ok())
             .collect();
         let sum_err: f32 = py_res_parsed_vec
             .iter()

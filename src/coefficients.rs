@@ -17,18 +17,16 @@
 //! # Examples
 //!
 //! ```
-//! fn main() {
-//!     use biquad::*;
+//! use biquad::*;
 //!
-//!     // Cutoff frequency
-//!     let f0 = 10.hz();
+//! // Cutoff frequency
+//! let f0 = 10.hz();
 //!
-//!     // Sampling frequency
-//!     let fs = 1.khz();
+//! // Sampling frequency
+//! let fs = 1.khz();
 //!
-//!     // Create coefficients
-//!     let coeffs = Coefficients::<f32>::from_params(Type::LowPass, fs, f0, Q_BUTTERWORTH_F32);
-//! }
+//! // Create coefficients
+//! let coeffs = Coefficients::<f32>::from_params(Type::LowPass, fs, f0, Q_BUTTERWORTH_F32);
 //! ```
 //!
 //! # Errors
@@ -38,8 +36,6 @@
 //! negative.
 
 use crate::{frequency::Hertz, Errors};
-
-// For some reason this is not detected properly
 
 use num_traits::Float;
 /// Common Q value of the Butterworth low-pass filter
@@ -71,7 +67,7 @@ pub struct Coefficients<C> {
     pub a1: C,
     pub a2: C,
 
-    // Nominator coefficients
+    // Numerator coefficients
     pub b0: C,
     pub b1: C,
     pub b2: C,
@@ -82,8 +78,8 @@ impl<C> Coefficients<C> where C: Float {
     /// value. Note that the cutoff frequency must be smaller than 1 and that Q may not be negative,
     ///  this will result in an `Err()`.
     /// * `filter_type` - Type of filter desired
-    /// * `normalized_f0` - Cut frequency devided by two times sampling frequency (0<F_cut<1 respects the shanon condition)
-    /// * `q_value` - Text about bar.
+    /// * `normalized_f0` - Cutoff frequency divided by two times sampling frequency (0 < F_cut < 1 respects the Shannon condition)
+    /// * `q_value` - Quality factor of the filter
     pub fn from_normalized_params(
         filter_type: Type<C>,
         normalized_f0: C,
@@ -303,7 +299,6 @@ impl<C> Coefficients<C> where C: Float {
         Self::from_normalized_params(filter, normalized_f0, q_value)
     }
 
-    //
     pub fn band_0db_from_cutting_frequencies(
         filter_type: Type<C>,
         normalized_f01: C,
@@ -323,12 +318,6 @@ impl<C> Coefficients<C> where C: Float {
         let frac_freq: C = normalized_f02 / normalized_f01;
         let bw_in_octaves = frac_freq.log2();
         let normalized_f0 = TWO.powf(normalized_f01.log2() + bw_in_octaves / TWO);
-        // #[allow(non_snake_case)]
-        // let PI: T = T::from(core::f64::consts::PI).unwrap();
-        // let omega_0 = PI * normalized_f0;
-        //
-        // let q_value =
-        //     T::one() / (TWO * (TWO.ln() * bw_in_octaves * (omega_0 / omega_0.sin()) / TWO).sinh());
         Self::from_normalized_params(filter_type, normalized_f0, C::one())
     }
 }
