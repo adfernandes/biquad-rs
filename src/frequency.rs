@@ -26,7 +26,7 @@
 //!
 //! # Panics
 //!
-//! `x.hz()`, `x.khz()`, `x.mhz()`, `x.dt()` will panic for `f32` if they are negative.
+//! `x.hz()`, `x.khz()`, `x.mhz()`, `x.dt()` will panic for `f32`/`f64` if they are negative.
 //!
 
 use num_traits::Float;

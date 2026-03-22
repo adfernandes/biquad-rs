@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.0] - 2026-03-22
+
+### Changes
+
+- **BREAKING** Move to `num_traits::ConstZero` for new so it can be used in const-context
+- Move to Rust edition 2024
+- Removed old Travis
+
+### Added
+
+- `nix` flake for running tests
+- Moved to Github Actions for CI
+
 ## [v0.5.0] - 2024-12-25
 
 ### Changes
